@@ -8,4 +8,11 @@ using idx_t = int;
 
 /** @brief Type used for dimesions, eg of a vector or matrix */
 using dim_t = int;
+
+namespace mem {
+enum RefType { //
+    WORK_REF,
+    GLOBAL_REF
+};
+}
 } // namespace feta2
