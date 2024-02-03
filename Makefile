@@ -15,6 +15,7 @@ $(builddir)/CMakeCache.txt: CMakeLists.txt
 	  -DFETA2_BUILD_DEMO=ON        \
 	  -DFETA2_DEBUG_MODE=ON        \
 	  -DFETA2_BUILD_BENCHMARKS=OFF \
+	  -DFETA2_NOT_FETA=ON          \
 	  .
 
 .PHONY: configure

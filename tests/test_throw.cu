@@ -1,12 +1,4 @@
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wrestrict"
-#include <gtest/gtest.h>
-#pragma GCC diagnostic pop
-#ifdef __clang__
-#pragma pop_macro("__noinline__")
-#endif
-
-#include <feta2/feta.cuh>
+#include "TestBase.cuh"
 
 namespace feta2_tests {
 namespace TestThrow {
