@@ -4,8 +4,12 @@
 
 /** @brief Macro used to throw exceptions. For host code only. */
 #define FETA2_HTHROW(...)                                                      \
-    ::feta2::err::detail::throw_(                                              \
-        __FILE__, __LINE__, static_cast<const char*>(__func__), ##__VA_ARGS__)
+    ::feta2::err::detail::throw_(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
+
+#define FETA2_HASSERT(condition, ...)                                          \
+    if (!(condition))                                                          \
+    ::feta2::err::detail::throw_(__FILE__, __LINE__, __func__,                 \
+        "assertion failed: (", #condition, ")\n\t ", ##__VA_ARGS__)
 
 namespace feta2 {
 namespace err {
