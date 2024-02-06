@@ -19,6 +19,13 @@ mark_as_advanced(FETA2_NOT_FETA)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 
+### DEPENDENCIES
+
+# Require Eigen >= 3.3
+find_package(Eigen3 3.3 REQUIRED CONFIG)
+message(STATUS "* Found Eigen version ${Eigen3_VERSION}")
+
+
 #### LIBRARY
 
 add_library(feta2 INTERFACE)
@@ -26,6 +33,7 @@ target_include_directories(feta2 INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
+target_link_libraries(feta2 INTERFACE Eigen3::Eigen)
 
 # Require C++17 features
 target_compile_features(feta2 INTERFACE cxx_std_17)
@@ -49,9 +57,9 @@ if (FETA2_WARN_AS_ERR)
   )
 endif()
 
-# Require Eigen >= 3.3
-find_package(Eigen3 3.3 REQUIRED CONFIG)
-message(STATUS "* Found Eigen3 version ${Eigen3_VERSION}")
+# Allows calling constexpr __host__ functions from __device__ functions
+# Otherwise this causes a slew of warnings from Eigen's code
+target_compile_options(feta2 INTERFACE "--expt-relaxed-constexpr")
 
 
 #### DEMO EXECUTABLE

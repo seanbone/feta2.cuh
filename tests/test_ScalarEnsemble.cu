@@ -9,16 +9,12 @@ namespace ScalarArrayTest {
 
 using feta2::idx_t;
 using feta2::SampleIndex;
-using DoubleArray = feta2::ScalarArray<double>;
+using DoubleEnsemble = feta2::ScalarEnsemble<double>;
 
 class ScalarArrayTest : public Test {
 protected:
-    static constexpr idx_t testSize  = 101;
-    static constexpr idx_t blockSize = 32;
-    static constexpr idx_t nBlocks   = (testSize + blockSize - 1) / blockSize;
-
     std::vector<double> data;
-    DoubleArray array;
+    DoubleEnsemble array;
 
 public:
     ScalarArrayTest()
@@ -42,12 +38,12 @@ public:
 
 TEST_F(ScalarArrayTest, OnHost_MoveCopySemantics)
 {
-    DoubleArray b(std::move(array));
+    DoubleEnsemble b(std::move(array));
 
     auto noop = [](double x) { return x; };
     validateData(b.getHostData(), noop);
 
-    DoubleArray c = std::move(b);
+    DoubleEnsemble c = std::move(b);
     validateData(c.getHostData(), noop);
 }
 
@@ -56,7 +52,7 @@ TEST_F(ScalarArrayTest, CopyToDeviceAndBack_IsCorrect)
     // DeviceToHost before HostToDevice is an error
     EXPECT_THROW(array.asyncMemcpyDeviceToHost(), std::runtime_error);
     array.asyncMemcpyHostToDevice();
-    DoubleArray b = std::move(array);
+    DoubleEnsemble b = std::move(array);
 
     // Double elements on host array
     for (idx_t i = 0; i < b.size(); i++)
@@ -70,10 +66,10 @@ TEST_F(ScalarArrayTest, CopyToDeviceAndBack_IsCorrect)
 }
 
 
-__global__ void doubleArrayCUDA(DoubleArray::GRef array)
+__global__ void doubleArrayCUDA(DoubleEnsemble::GRef array)
 {
     const SampleIndex i(threadIdx.x, blockIdx.x, blockDim.x);
-    DoubleArray::GRef arr = array;
+    DoubleEnsemble::GRef arr = array;
 
     if (i.global() >= arr.size())
         return;
@@ -85,7 +81,7 @@ TEST_F(ScalarArrayTest, EditOnDevice_IsCorrect)
 {
     EXPECT_THROW(array.asyncMemcpyDeviceToHost(), std::runtime_error);
     array.asyncMemcpyHostToDevice();
-    DoubleArray b = std::move(array);
+    DoubleEnsemble b = std::move(array);
 
     FETA2_KERNEL_PRE();
     doubleArrayCUDA<<<nBlocks, blockSize>>>(b.deviceRef());
@@ -97,7 +93,7 @@ TEST_F(ScalarArrayTest, EditOnDevice_IsCorrect)
     validateData(b.getHostData(), mul2);
 }
 
-__global__ void doubleArrayCUDAShared(DoubleArray::GRef arr)
+__global__ void doubleArrayCUDAShared(DoubleEnsemble::GRef arr)
 {
     const SampleIndex i(threadIdx.x, blockIdx.x, blockDim.x);
 
@@ -105,7 +101,7 @@ __global__ void doubleArrayCUDAShared(DoubleArray::GRef arr)
         return;
 
     extern __shared__ double shMem[];
-    DoubleArray::WRef shArr = arr.workRef(shMem, blockDim.x);
+    DoubleEnsemble::WRef shArr = arr.workRef(shMem, blockDim.x);
 
     shArr[i] = arr[i];
     shArr[i] *= 2;
@@ -116,7 +112,7 @@ TEST_F(ScalarArrayTest, EditOnDeviceShared_IsCorrect)
 {
     EXPECT_THROW(array.asyncMemcpyDeviceToHost(), std::runtime_error);
     array.asyncMemcpyHostToDevice();
-    DoubleArray b = std::move(array);
+    DoubleEnsemble b = std::move(array);
 
     FETA2_KERNEL_PRE();
     idx_t shMem = blockSize * sizeof(double);
@@ -132,7 +128,7 @@ TEST_F(ScalarArrayTest, EditOnDeviceShared_IsCorrect)
 TEST_F(ScalarArrayTest, OnInit_AllValuesInitialized)
 {
     double initVal = 3.14;
-    DoubleArray blankArray(testSize, 3.14);
+    DoubleEnsemble blankArray(testSize, 3.14);
 
     for (uint i = 0; i < testSize; i++) {
         ASSERT_EQ(blankArray[i], initVal);

@@ -15,6 +15,13 @@
 namespace feta2_tests {
 /** @brief Base class for test suites */
 class Test : public ::testing::Test {
+protected:
+    using idx_t = feta2::idx_t;
+
+    static constexpr idx_t testSize  = 101;
+    static constexpr idx_t blockSize = 32;
+    static constexpr idx_t nBlocks   = (testSize + blockSize - 1) / blockSize;
+
 public:
     Test()
         : rng_(rd_())

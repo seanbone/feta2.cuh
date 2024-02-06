@@ -40,6 +40,6 @@ message(STATUS "* Found " ${TEST_FILES_LEN} " unit test files")
 add_executable(feta2_tests ${TEST_FILES})
 target_link_libraries(feta2_tests feta2 GTest::gtest_main)
 # TODO figure out better way to do this
-target_compile_options(feta2_tests PRIVATE "--diag-suppress=20012,20013,20015")
+target_compile_options(feta2_tests PRIVATE "--diag-suppress=20012")
 target_include_directories(feta2_tests PRIVATE include)
 gtest_discover_tests(feta2_tests)

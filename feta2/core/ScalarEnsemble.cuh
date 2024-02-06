@@ -6,7 +6,7 @@
 namespace feta2 {
 namespace core {
 /**
- * @brief Array of scalar values with a corresponding copy on the GPU.
+ * @brief Ensemble of scalar values with a corresponding copy on the GPU.
  *
  * This class manages two arrays: one on the host and one on the GPU.
  *
@@ -20,12 +20,12 @@ namespace core {
  * into a `__global__` kernel, use `ScalarArray::deviceRef()` to obtain a
  * non-owning reference to the device array.
  */
-template<typename S>
-class ScalarArray {
+template<typename Scalar_>
+class ScalarEnsemble {
 public:
     /** @brief Generic work or global reference type */
     template<ref::RefKind kind>
-    using Ref = detail::RefScalarArray<S, kind>;
+    using Ref = detail::RefScalarEnsemble<Scalar_, kind>;
     /** @brief Global reference type */
     using GRef = Ref<ref::GLOBAL>;
     /** @brief Work reference type */
@@ -36,21 +36,21 @@ public:
      *
      * Host memory is allocated and will be deallocated in destructor.
      */
-    ScalarArray(const idx_t size, const S& initVal = 0);
+    ScalarEnsemble(const idx_t size, const Scalar_& initVal = 0);
 
     /** @brief Move constructor. */
-    ScalarArray(ScalarArray<S>&& other);
+    ScalarEnsemble(ScalarEnsemble<Scalar_>&& other);
 
     /** @brief Move assignment operator. */
-    ScalarArray& operator=(ScalarArray<S>&& other);
+    ScalarEnsemble& operator=(ScalarEnsemble<Scalar_>&& other);
 
     /** @brief Copy construction is disallowed. Use move semantics instead. */
-    ScalarArray(ScalarArray<S>&) = delete;
+    ScalarEnsemble(ScalarEnsemble<Scalar_>&) = delete;
     /** @brief Copy assignment is disallowed. Use move semantics instead. */
-    ScalarArray& operator=(ScalarArray<S>&) = delete;
+    ScalarEnsemble& operator=(ScalarEnsemble<Scalar_>&) = delete;
 
     /** @brief Destructor. Deallocates host and device data as needed. */
-    ~ScalarArray();
+    ~ScalarEnsemble();
 
     /** @brief Async copy data from host to device.
      *
@@ -68,17 +68,23 @@ public:
      *
      * Accesses are bounds-checked if `FETA2_DEBUG_MODE` is defined.
      */
-    S& operator[](const SampleIndex& idx) const;
+    Scalar_& operator[](const SampleIndex& idx) const;
+
+    /** @brief Element access on host array.
+     *
+     * Accesses are bounds-checked if `FETA2_DEBUG_MODE` is defined.
+     */
+    Scalar_& operator[](const idx_t& idx) const;
 
     /** @brief Return pointer to host data. Is never nullptr. */
-    inline S* getHostData() const;
+    inline Scalar_* getHostData() const;
 
     /**
      * @brief Return pointer to device data.
      *
      * @throws if called before calling `memcpyHostToDevice` the first time.
      */
-    inline S* getDeviceData() const;
+    inline Scalar_* getDeviceData() const;
 
     /** @brief Returns the number of elements in this array. */
     inline idx_t size() const { return size_; }
@@ -100,21 +106,21 @@ private:
     bool deviceAllocated_() const { return deviceData_ != nullptr; }
 
 private:
-    S* hostData_   = nullptr;
-    S* deviceData_ = nullptr;
-    idx_t size_    = 0;
+    Scalar_* hostData_   = nullptr;
+    Scalar_* deviceData_ = nullptr;
+    idx_t size_          = 0;
 };
 
 
 template<typename S>
-ScalarArray<S>::ScalarArray(ScalarArray<S>&& other)
+ScalarEnsemble<S>::ScalarEnsemble(ScalarEnsemble<S>&& other)
 {
     // Defer logic to move assignment operator
     *this = std::move(other);
 }
 
 template<typename S>
-ScalarArray<S>& ScalarArray<S>::operator=(ScalarArray<S>&& other)
+ScalarEnsemble<S>& ScalarEnsemble<S>::operator=(ScalarEnsemble<S>&& other)
 {
     // Deallocate current arrays, if any
     free_();
@@ -131,7 +137,7 @@ ScalarArray<S>& ScalarArray<S>::operator=(ScalarArray<S>&& other)
 }
 
 template<typename S>
-ScalarArray<S>::ScalarArray(const idx_t size, const S& initVal)
+ScalarEnsemble<S>::ScalarEnsemble(const idx_t size, const S& initVal)
     : size_{ size }
 {
     FETA2_CUAPI(cudaMallocHost(&hostData_, size_ * sizeof(S)));
@@ -139,14 +145,14 @@ ScalarArray<S>::ScalarArray(const idx_t size, const S& initVal)
 }
 
 template<typename S>
-void ScalarArray<S>::mallocDevice_()
+void ScalarEnsemble<S>::mallocDevice_()
 {
     if (!deviceAllocated_())
         FETA2_CUAPI(cudaMalloc(&deviceData_, size_ * sizeof(S)));
 }
 
 template<typename S>
-void ScalarArray<S>::free_()
+void ScalarEnsemble<S>::free_()
 {
     if (hostAllocated_())
         FETA2_CUAPI(cudaFreeHost(hostData_));
@@ -155,26 +161,32 @@ void ScalarArray<S>::free_()
 }
 
 template<typename S>
-ScalarArray<S>::~ScalarArray()
+ScalarEnsemble<S>::~ScalarEnsemble()
 {
     free_();
 }
 
 template<typename S>
-S& ScalarArray<S>::operator[](const SampleIndex& idx) const
+S& ScalarEnsemble<S>::operator[](const SampleIndex& idx) const
 {
     return hostRef()[idx.global()];
 }
 
 template<typename S>
-inline S* ScalarArray<S>::getHostData() const
+S& ScalarEnsemble<S>::operator[](const idx_t& idx) const
+{
+    return hostRef()[idx];
+}
+
+template<typename S>
+inline S* ScalarEnsemble<S>::getHostData() const
 {
     FETA2_ASSERT(hostAllocated_(), "Host data not allocated!");
     return hostData_;
 }
 
 template<typename S>
-inline S* ScalarArray<S>::getDeviceData() const
+inline S* ScalarEnsemble<S>::getDeviceData() const
 {
     FETA2_ASSERT(deviceAllocated_(), "Device data not allocated!");
     return deviceData_;
@@ -182,7 +194,7 @@ inline S* ScalarArray<S>::getDeviceData() const
 
 
 template<typename S>
-void ScalarArray<S>::asyncMemcpyHostToDevice(const cudaStream_t stream)
+void ScalarEnsemble<S>::asyncMemcpyHostToDevice(const cudaStream_t stream)
 {
     FETA2_ASSERT(hostAllocated_(), "Host data not allocated!");
     mallocDevice_();
@@ -191,14 +203,14 @@ void ScalarArray<S>::asyncMemcpyHostToDevice(const cudaStream_t stream)
 }
 
 template<typename S>
-void ScalarArray<S>::asyncMemcpyDeviceToHost(const cudaStream_t stream)
+void ScalarEnsemble<S>::asyncMemcpyDeviceToHost(const cudaStream_t stream)
 {
     FETA2_CUAPI(cudaMemcpyAsync(getHostData(), getDeviceData(),
         size() * sizeof(S), cudaMemcpyDeviceToHost, stream));
 }
 
 template<typename S>
-typename ScalarArray<S>::GRef ScalarArray<S>::deviceRef() const
+typename ScalarEnsemble<S>::GRef ScalarEnsemble<S>::deviceRef() const
 {
     FETA2_ASSERT(deviceAllocated_(),
         "`deviceRef` called without initialization of device memory! Call "
@@ -207,7 +219,7 @@ typename ScalarArray<S>::GRef ScalarArray<S>::deviceRef() const
 }
 
 template<typename S>
-typename ScalarArray<S>::GRef ScalarArray<S>::hostRef() const
+typename ScalarEnsemble<S>::GRef ScalarEnsemble<S>::hostRef() const
 {
     FETA2_ASSERT(hostAllocated_(),
         "ScalarArray::hostRef called without initialization!");

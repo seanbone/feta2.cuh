@@ -1,15 +1,14 @@
 #pragma once
 
-// Third-party includes
-#include <eigen3/Eigen/Dense>
-
 // Internal includes
-#include "core/ScalarArray.cuh"
+#include "core/MatrixEnsemble.cuh"
+#include "core/ScalarEnsemble.cuh"
 #include "util.cuh"
 
 namespace feta2 {
-using core::ScalarArray;
-}
+using core::MatrixEnsemble;
+using core::ScalarEnsemble;
+} // namespace feta2
 
 #ifndef FETA2_NOT_FETA
 namespace feta = feta2;

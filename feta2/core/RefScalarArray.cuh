@@ -17,13 +17,13 @@ namespace detail {
  *will use `SampleIndex::work()`. Otherise, it uses `SampleIndex::global()`.
  **/
 template<typename S, ref::RefKind kind>
-class RefScalarArray {
+class RefScalarEnsemble {
 public:
     /**
      * @brief Construct a non-owning scalar array which assumes `data` has been
      * allocated for at least `size` elements.
      */
-    FETA2_DEVICE RefScalarArray(S* const data, const idx_t size);
+    FETA2_DEVICE RefScalarEnsemble(S* const data, const idx_t size);
 
     /**
      * @brief Element access operator. Performs bounds-check if
@@ -67,7 +67,7 @@ public:
      * `bufSize(size)` elements long.
      * @param size Size of the work array to initialize.
      */
-    FETA2_DEVICE RefScalarArray<S, ref::WORK> workRef(
+    FETA2_DEVICE RefScalarEnsemble<S, ref::WORK> workRef(
         S* buf, const idx_t& size) const;
 
     /**
@@ -86,7 +86,7 @@ private:
 
 
 template<typename S, ref::RefKind kind>
-FETA2_DEVICE S& RefScalarArray<S, kind>::operator[](const idx_t& idx) const
+FETA2_DEVICE S& RefScalarEnsemble<S, kind>::operator[](const idx_t& idx) const
 {
     FETA2_DBG_ASSERT(
         idx >= 0 && idx < size_, "RefScalarArray: out of bounds access");
@@ -94,7 +94,7 @@ FETA2_DEVICE S& RefScalarArray<S, kind>::operator[](const idx_t& idx) const
 }
 
 template<typename S, ref::RefKind kind>
-FETA2_DEVICE S& RefScalarArray<S, kind>::operator[](
+FETA2_DEVICE S& RefScalarEnsemble<S, kind>::operator[](
     const SampleIndex& idx) const
 {
     if constexpr (kind == ref::WORK) {
@@ -105,7 +105,7 @@ FETA2_DEVICE S& RefScalarArray<S, kind>::operator[](
 }
 
 template<typename S, ref::RefKind kind>
-FETA2_DEVICE RefScalarArray<S, kind>::RefScalarArray(
+FETA2_DEVICE RefScalarEnsemble<S, kind>::RefScalarEnsemble(
     S* const data, const idx_t size)
     : data_{ data }
     , size_{ size }
@@ -114,24 +114,24 @@ FETA2_DEVICE RefScalarArray<S, kind>::RefScalarArray(
 
 
 template<typename S, ref::RefKind kind>
-FETA2_DEVICE inline idx_t RefScalarArray<S, kind>::bufSize(
+FETA2_DEVICE inline idx_t RefScalarEnsemble<S, kind>::bufSize(
     const idx_t& arrayLen)
 {
     return arrayLen;
 }
 
 template<typename S, ref::RefKind kind>
-FETA2_DEVICE inline idx_t RefScalarArray<S, kind>::bufBytes(
+FETA2_DEVICE inline idx_t RefScalarEnsemble<S, kind>::bufBytes(
     const idx_t& arrayLen)
 {
     return bufSize(arrayLen) * sizeof(S);
 }
 
 template<typename S, ref::RefKind kind>
-FETA2_DEVICE RefScalarArray<S, ref::WORK> RefScalarArray<S, kind>::workRef(
-    S* buf, const idx_t& size) const
+FETA2_DEVICE RefScalarEnsemble<S, ref::WORK>
+RefScalarEnsemble<S, kind>::workRef(S* buf, const idx_t& size) const
 {
-    return RefScalarArray<S, ref::WORK>(buf, size);
+    return RefScalarEnsemble<S, ref::WORK>(buf, size);
 }
 } // namespace detail
 } // namespace core
