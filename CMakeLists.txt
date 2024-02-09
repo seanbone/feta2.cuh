@@ -60,6 +60,7 @@ endif()
 # Allows calling constexpr __host__ functions from __device__ functions
 # Otherwise this causes a slew of warnings from Eigen's code
 target_compile_options(feta2 INTERFACE "--expt-relaxed-constexpr")
+target_compile_options(feta2 INTERFACE "-Wno-unknown-pragmas")
 
 
 #### DEMO EXECUTABLE
@@ -71,7 +72,7 @@ if (FETA2_BUILD_DEMO)
     "-Wall -Wextra -O3 -ftemplate-backtrace-limit=100"
   )
   # TODO figure out better way to do this
-  # target_compile_options(feta2_demo PRIVATE "--diag-suppress=20012,20013,20015")
+  target_compile_options(feta2_demo PRIVATE "--diag-suppress=20012")
 endif()
 
 
