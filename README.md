@@ -49,7 +49,7 @@ This leads to _strided accesses_ to global memory, which has a dramatic
 To mitigate the issue, we should use a different memory layout, where each component
 of each vector is contiguous in memory: `xxx...yyy...zzz...`.
 This will lead to improved cache utilisation and greatly improved performance.
-This is similar to the [AoS vs SoA](https://en.wikipedia.org/wiki/AoS_and_SoA) dichotomy.
+You may know these two layouts as the [AoS and SoA](https://en.wikipedia.org/wiki/AoS_and_SoA).
 
 For vectors the solution is simple -- just store the vectors as columns in a row-major matrix.
 But for matrices, it's not so obvious.
@@ -61,7 +61,7 @@ __global__ void matMul(feta::Matrix3dEnsemble::GRef mats, feta::Vector3dEnsemble
 {
     const feta::SampleIndex si(threadIdx.x, blockIdx.x, blockDim.x);
 
-    if (si.global() >= nSamples) return;
+    if (si.global() >= vecs.size()) return;
 
     vecs[si] = mats[si] * vecs[si];
 }
