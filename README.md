@@ -1,14 +1,14 @@
 # FETA2.cuh
 FETA2.cuh stands for Fast Expression Template Algebra for CUDA/C++.
-It allows you to make use of the powerful and well-established [Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page)
+It allows you to make use of the powerful and well-established [Eigen](https://eigen.tuxfamily.org/)
 C++ linear algebra library in CUDA device code, while avoiding the hassle of CUDA's
 memory management and its performance traps.
 
 FETA2.cuh provides types representing [ensembles](https://en.wikipedia.org/wiki/Ensemble_%28mathematical_physics%29)
 (i.e., large collections) of Eigen matrices/vectors.
-For instance, a `feta2::Vector3dEnsemble` behaves a lot like an
+For instance, a `feta::Vector3dEnsemble` behaves a lot like an
 `std::vector<Eigen::Vector3d>`, but it'll be significantly faster for GPU computations,
-and it makes memory management on host, device global and device shared memory a breeze.
+and it greatly simplifies memory management on host, device global and device shared memory.
 
 See `feta2_demo.cu` for a quick overview of FETA2's functionality.
 
@@ -20,7 +20,7 @@ thread on the GPU.
 This kind of scenario is common in scientific computing, for instance in
  Monte-Carlo simulations.
 
-FETA2 is _not_ useful if you want to accelerate a _few_ very _large_ linear algebra operations.
+FETA2 is **not** useful if you want to accelerate a _few large_ linear algebra operations.
 For this you should use dedicated libraries such as [cuBLAS](https://developer.nvidia.com/cublas)
 or Eigen's [tensor module](https://eigen.tuxfamily.org/dox/unsupported/eigen_tensors.html).
 
@@ -51,11 +51,12 @@ of each vector is contiguous in memory: `xxx...yyy...zzz...`.
 This will lead to improved cache utilisation and greatly improved performance.
 
 For vectors the solution is simple -- just store the vectors as columns in a row-major matrix.
-But for matrices, it's not so obvious. Enter FETA:
+But for matrices, it's not so obvious.
+
+Enter FETA:
 
 ```cpp
-__global__ void matMul(feta::Matrix3dEnsemble::GRef mats,
-feta::Vector3dEnsemble::GRef vecs)
+__global__ void matMul(feta::Matrix3dEnsemble::GRef mats, feta::Vector3dEnsemble::GRef vecs)
 {
     const feta::SampleIndex si(threadIdx.x, blockIdx.x, blockDim.x);
 
@@ -67,6 +68,9 @@ feta::Vector3dEnsemble::GRef vecs)
 
 FETA's ensemble types allow you to treat them as if they were arrays of Eigen
 objects, but use a GPU-optimised memory layout internally.
+The element access operator, e.g. `mats[is]`, gives you access to a regular
+Eigen matrix/vector type, just like with an array.
+
 Here, `::GRef` stands for "global reference", and indicates that the type
 references data that "lives" in GPU global memory.
 FETA also allows you to easily work with shared memory, which is why
