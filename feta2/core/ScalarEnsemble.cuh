@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../util.cuh"
-#include "RefScalarArray.cuh"
+#include "RefScalarEnsemble.cuh"
 
 namespace feta2 {
 namespace core {

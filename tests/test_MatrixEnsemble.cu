@@ -4,10 +4,6 @@
  */
 
 #include "TestBase.cuh"
-#include "feta2/feta.cuh"
-#include "feta2/util/err.cuh"
-#include <cuda_runtime_api.h>
-#include <gtest/gtest.h>
 
 namespace feta2_tests {
 namespace MatrixEnsembleTest {
@@ -88,6 +84,82 @@ TEST_F(MatrixEnsembleTest, DeviceCopy)
     FETA2_CUAPI(cudaDeviceSynchronize());
 
     validate(normOp, hostNorms(b));
+}
+
+
+__global__ void doubleEnsemble(Ensemble::GRef ensemble)
+{
+    feta2::SampleIndex si(threadIdx.x, blockIdx.x, blockDim.x);
+
+    if (si.global() >= ensemble.size())
+        return;
+
+    ensemble[si] *= 2;
+}
+
+TEST_F(MatrixEnsembleTest, OnDevice_DoubleEnsemble)
+{
+    EXPECT_ANY_THROW(ensemble_.deviceRef());
+
+    ensemble_.asyncMemcpyHostToDevice();
+    FETA2_CUAPI(cudaDeviceSynchronize());
+
+    // Double each matrix on device array
+    FETA2_KERNEL_PRE();
+    doubleEnsemble<<<blockSize, nBlocks>>>(ensemble_.deviceRef());
+    FETA2_KERNEL_POST();
+
+    Ensemble b(std::move(ensemble_));
+    b.asyncMemcpyDeviceToHost();
+    FETA2_CUAPI(cudaDeviceSynchronize());
+
+    validate(doubleNormOp, hostNorms(b));
+}
+
+
+#ifdef FETA2_DEBUG_MODE
+TEST_F(MatrixEnsembleTest, OnHost_OutOfBounds_Throws)
+{
+    EXPECT_ANY_THROW(ensemble_[ensemble_.size()]);
+    EXPECT_ANY_THROW(ensemble_.hostRef()[feta2::SampleIndex(ensemble_.size())]);
+}
+#endif
+
+
+__global__ void doubleEnsembleShMem(Ensemble::GRef ensemble)
+{
+    feta2::SampleIndex si(threadIdx.x, blockIdx.x, blockDim.x);
+
+    if (si.global() >= ensemble.size())
+        return;
+
+    extern __shared__ Scalar smem[];
+    Ensemble::WRef workEnsemble = ensemble.workRef(smem, blockDim.x);
+
+    workEnsemble[si] = ensemble[si];
+    workEnsemble[si] += ensemble[si];
+    ensemble[si] = workEnsemble[si];
+}
+
+TEST_F(MatrixEnsembleTest, OnDevice_DoubleEnsembleInShared)
+{
+    EXPECT_ANY_THROW(ensemble_.deviceRef());
+
+    ensemble_.asyncMemcpyHostToDevice();
+    FETA2_CUAPI(cudaDeviceSynchronize());
+
+    // Double each matrix on device array
+    FETA2_KERNEL_PRE();
+    const idx_t shMemSize = Ensemble::WRef::bufBytes(blockSize);
+    doubleEnsembleShMem<<<blockSize, nBlocks, shMemSize>>>(
+        ensemble_.deviceRef());
+    FETA2_KERNEL_POST();
+
+    Ensemble b(std::move(ensemble_));
+    b.asyncMemcpyDeviceToHost();
+    FETA2_CUAPI(cudaDeviceSynchronize());
+
+    validate(doubleNormOp, hostNorms(b));
 }
 
 

@@ -13,11 +13,6 @@ class MatrixEnsemble {
     using StrideT = Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>;
 
 public:
-    /** @brief Equivalent type for one ensemble element */
-    using Element = Eigen::Matrix<Scalar_, Rows_, Cols_>;
-    /** @brief Mapped type for one ensemble element */
-    using ElementMap = Eigen::Map<Element, Eigen::Unaligned, StrideT>;
-
     /** @brief Generic work or global reference type */
     template<ref::RefKind kind>
     using Ref = detail::RefMatrixEnsemble<Scalar_, Rows_, Cols_, kind>;
@@ -25,6 +20,11 @@ public:
     using GRef = Ref<ref::GLOBAL>;
     /** @brief Work reference type */
     using WRef = Ref<ref::WORK>;
+
+    /** @brief Equivalent type for one ensemble element */
+    using Element = typename GRef::Element;
+    /** @brief Mapped type for one ensemble element */
+    using ElementMap = typename GRef::ElementMap;
 
     /** @brief Host construction and initialization.
      *
@@ -50,6 +50,12 @@ public:
      */
     void asyncMemcpyDeviceToHost(const cudaStream_t stream = 0);
 
+    /** @brief Return a non-owning reference to the host-allocated array. */
+    GRef hostRef() const;
+
+    /** @brief Return a non-owning reference to the device-allocated array. */
+    GRef deviceRef() const;
+
 private:
     ScalarEnsemble<Scalar_> data_;
     idx_t size_;
@@ -62,14 +68,24 @@ MatrixEnsemble<S, R, C>::MatrixEnsemble(const idx_t& size, const S& initVal)
 {
 }
 
+template<typename S, dim_t R, dim_t C>
+typename MatrixEnsemble<S, R, C>::GRef MatrixEnsemble<S, R, C>::hostRef() const
+{
+    return GRef(data_.hostRef(), size_);
+}
+
+template<typename S, dim_t R, dim_t C>
+typename MatrixEnsemble<S, R, C>::GRef
+MatrixEnsemble<S, R, C>::deviceRef() const
+{
+    return GRef(data_.deviceRef(), size_);
+}
+
 template<typename S, dim_t Rows_, dim_t Cols_>
 typename MatrixEnsemble<S, Rows_, Cols_>::ElementMap
 MatrixEnsemble<S, Rows_, Cols_>::operator[](const idx_t& idx) const
 {
-    const idx_t innerStride = size_;
-    const idx_t outerStride = innerStride * Rows_;
-    return Element::Map(data_.getHostData() + idx, Rows_, Cols_,
-        StrideT(outerStride, innerStride));
+    return hostRef()[idx];
 }
 
 template<typename S, dim_t Rows_, dim_t Cols_>
