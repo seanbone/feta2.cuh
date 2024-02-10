@@ -81,7 +81,7 @@ we use `SampleIndex` -- but that is a topic for another time.
 ## Benchmarks
 
 All benchmarks reported here were performed on an NVIDIA Tesla V100 16GB GPU, with 10M
-samples and averaged over 100k repetitions, and using double-precision arithmetic.
+samples, averaged over 100k repetitions, and using double-precision arithmetic.
 The code for each can be found under `tests/benchmarks`.
 
 "Eigen (naive)" refers to simply passing an array of Eigen objects (e.g., `Eigen::Vector3d *`) 
@@ -90,7 +90,7 @@ a raw array of `double`s and using a GPU-optimised memory layout.
 Finally, "FETA2" implementations use FETA2's ensemble types and then use Eigen's vector
 arithmetics to actually perform the operations.
 
-- Vector dot product: `out[i] = a[i].dot(b[i])`
+- **Vector dot product** `out[i] = a[i].dot(b[i])` for 3D, 6D and 9D vectors.
 
 ![test](images/perf_vecDot.png)
 
