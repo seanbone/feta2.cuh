@@ -78,4 +78,20 @@ FETA also allows you to easily work with shared memory, which is why
 we use `SampleIndex` -- but that is a topic for another time.
 
 
+## Benchmarks
+
+All benchmarks reported here were performed on an NVIDIA Tesla V100 16GB GPU, with 10M
+samples and averaged over 100k repetitions, and using double-precision arithmetic.
+The code for each can be found under `tests/benchmarks`.
+
+"Eigen (naive)" refers to simply passing an array of Eigen objects (e.g., `Eigen::Vector3d *`) 
+into the kernel. "Manual" refers to a manual but well-optimised implementation, i.e. passing
+a raw array of `double`s and using a GPU-optimised memory layout.
+Finally, "FETA2" implementations use FETA2's ensemble types and then use Eigen's vector
+arithmetics to actually perform the operations.
+
+- Vector dot product: `out[i] = a[i].dot(b[i])`
+
+![test](images/perf_vecDot.png)
+
 
