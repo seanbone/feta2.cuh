@@ -27,7 +27,7 @@ for attribute, measurement in flops.items():
     multiplier += 1
 
 # Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_ylabel('Averave performance [MFLOP/s]')
+ax.set_ylabel('Average performance [MFLOP/s]')
 ax.set_title('Vector dot product (10M samples, double precision)')
 ax.set_xticks(x + width * (nBars-1.)/2, runs)
 ax.legend(loc='upper left', ncols=4)
