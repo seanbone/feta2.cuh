@@ -30,8 +30,8 @@ file(GLOB TEST_FILES
 list(SORT TEST_FILES COMPARE NATURAL)
 
 foreach(file ${TEST_FILES})
-    get_filename_component(filename ${file} NAME_WE)
-    message(STATUS "* Found unit test file " ${file})
+  get_filename_component(filename ${file} NAME_WE)
+  message(STATUS "* Found unit test file " ${file})
 endforeach()
 
 list(LENGTH TEST_FILES TEST_FILES_LEN)
@@ -39,7 +39,18 @@ message(STATUS "* Found " ${TEST_FILES_LEN} " unit test files")
 
 add_executable(feta2_tests ${TEST_FILES})
 target_link_libraries(feta2_tests feta2 GTest::gtest_main)
-# TODO figure out better way to do this
-target_compile_options(feta2_tests PRIVATE "--diag-suppress=20012")
+target_compile_options(feta2_tests PRIVATE ${FETA2_COMMON_OPTIONS})
 target_include_directories(feta2_tests PRIVATE include)
 gtest_discover_tests(feta2_tests)
+
+
+#### Performance benchmarks
+
+if (FETA2_BUILD_BENCHMARKS)
+  if (FETA2_DEBUG_MODE)
+    message(WARNING "Not building benchmarks despite FETA2_BUILD_BENCHMARKS=ON. \n"
+    "Reason: debug mode is enabled (FETA2_DEBUG_MODE=ON).")
+  else()
+    add_subdirectory(benchmarks)
+  endif()
+endif()

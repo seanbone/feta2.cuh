@@ -64,6 +64,9 @@ public:
      */
     FETA2_DEVICE Scalar_* end() const { return data_ + size_ * Rows_ * Cols_; }
 
+    /** @brief Pointer to the underlying data buffer. */
+    FETA2_DEVICE inline Scalar_* data() const { return data_.data(); }
+
 private:
     ScalarRef_ data_;
     idx_t size_;

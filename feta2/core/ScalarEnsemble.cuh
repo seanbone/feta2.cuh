@@ -77,14 +77,14 @@ public:
     Scalar_& operator[](const idx_t& idx) const;
 
     /** @brief Return pointer to host data. Is never nullptr. */
-    inline Scalar_* getHostData() const;
+    inline Scalar_* hostData() const;
 
     /**
      * @brief Return pointer to device data.
      *
      * @throws if called before calling `memcpyHostToDevice` the first time.
      */
-    inline Scalar_* getDeviceData() const;
+    inline Scalar_* deviceData() const;
 
     /** @brief Returns the number of elements in this array. */
     inline idx_t size() const { return size_; }
@@ -179,14 +179,14 @@ S& ScalarEnsemble<S>::operator[](const idx_t& idx) const
 }
 
 template<typename S>
-inline S* ScalarEnsemble<S>::getHostData() const
+inline S* ScalarEnsemble<S>::hostData() const
 {
     FETA2_ASSERT(hostAllocated_(), "Host data not allocated!");
     return hostData_;
 }
 
 template<typename S>
-inline S* ScalarEnsemble<S>::getDeviceData() const
+inline S* ScalarEnsemble<S>::deviceData() const
 {
     FETA2_ASSERT(deviceAllocated_(), "Device data not allocated!");
     return deviceData_;
@@ -198,15 +198,15 @@ void ScalarEnsemble<S>::asyncMemcpyHostToDevice(const cudaStream_t stream)
 {
     FETA2_ASSERT(hostAllocated_(), "Host data not allocated!");
     mallocDevice_();
-    FETA2_CUAPI(cudaMemcpyAsync(getDeviceData(), getHostData(),
-        size() * sizeof(S), cudaMemcpyHostToDevice, stream));
+    FETA2_CUAPI(cudaMemcpyAsync(deviceData(), hostData(), size() * sizeof(S),
+        cudaMemcpyHostToDevice, stream));
 }
 
 template<typename S>
 void ScalarEnsemble<S>::asyncMemcpyDeviceToHost(const cudaStream_t stream)
 {
-    FETA2_CUAPI(cudaMemcpyAsync(getHostData(), getDeviceData(),
-        size() * sizeof(S), cudaMemcpyDeviceToHost, stream));
+    FETA2_CUAPI(cudaMemcpyAsync(hostData(), deviceData(), size() * sizeof(S),
+        cudaMemcpyDeviceToHost, stream));
 }
 
 template<typename S>

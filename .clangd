@@ -2,3 +2,5 @@ CompileFlags:
   Remove:
     - --generate-code=*
     - -forward-unknown-to-host-compiler
+    - --diag-suppress=*
+    - --expt-relaxed-constexpr

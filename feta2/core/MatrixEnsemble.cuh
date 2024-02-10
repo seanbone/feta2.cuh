@@ -56,6 +56,16 @@ public:
     /** @brief Return a non-owning reference to the device-allocated array. */
     GRef deviceRef() const;
 
+    /** @brief Return pointer to host data. Is never nullptr. */
+    inline Scalar_* hostData() const { return data_.hostData(); }
+
+    /**
+     * @brief Return pointer to device data.
+     *
+     * @throws if called before calling `memcpyHostToDevice` the first time.
+     */
+    inline Scalar_* deviceData() const { return data_.deviceData(); }
+
 private:
     ScalarEnsemble<Scalar_> data_;
     idx_t size_;

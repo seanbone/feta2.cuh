@@ -24,8 +24,8 @@ protected:
 
 public:
     MatrixEnsembleTest()
-        : matrices_(testSize)
-        , ensemble_(testSize)
+        : matrices_(testSize_)
+        , ensemble_(testSize_)
     {
         for (idx_t i = 0; i < ensemble_.size(); i++) {
             matrices_[i] = rand_() * Ensemble::Element::Identity();
@@ -106,7 +106,7 @@ TEST_F(MatrixEnsembleTest, OnDevice_DoubleEnsemble)
 
     // Double each matrix on device array
     FETA2_KERNEL_PRE();
-    doubleEnsemble<<<blockSize, nBlocks>>>(ensemble_.deviceRef());
+    doubleEnsemble<<<blockSize_, nBlocks_>>>(ensemble_.deviceRef());
     FETA2_KERNEL_POST();
 
     Ensemble b(std::move(ensemble_));
@@ -150,8 +150,8 @@ TEST_F(MatrixEnsembleTest, OnDevice_DoubleEnsembleInShared)
 
     // Double each matrix on device array
     FETA2_KERNEL_PRE();
-    const idx_t shMemSize = Ensemble::WRef::bufBytes(blockSize);
-    doubleEnsembleShMem<<<blockSize, nBlocks, shMemSize>>>(
+    const idx_t shMemSize = Ensemble::WRef::bufBytes(blockSize_);
+    doubleEnsembleShMem<<<blockSize_, nBlocks_, shMemSize>>>(
         ensemble_.deviceRef());
     FETA2_KERNEL_POST();
 

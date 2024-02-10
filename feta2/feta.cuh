@@ -60,6 +60,8 @@ using Vector6iEnsemble = Vector6Ensemble<int>;
 
 } // namespace feta2
 
+// Alias feta2 to feta. This can be disabled for compatibility with original
+// feta, in the unlikely case you're using both.
 #ifndef FETA2_NOT_FETA
 namespace feta = feta2;
 #endif

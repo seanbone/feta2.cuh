@@ -18,10 +18,10 @@ protected:
 
 public:
     ScalarArrayTest()
-        : data(testSize)
-        , array(testSize)
+        : data(testSize_)
+        , array(testSize_)
     {
-        for (uint i = 0; i < testSize; i++) {
+        for (uint i = 0; i < testSize_; i++) {
             data[i]  = rand_();
             array[i] = data[i];
         }
@@ -30,7 +30,7 @@ public:
     template<typename Iterator, typename FUNC>
     void validateData(Iterator it, FUNC& f)
     {
-        for (uint i = 0; i < testSize; i++) {
+        for (uint i = 0; i < testSize_; i++) {
             ASSERT_DOUBLE_EQ(it[i], f(data[i])) << "i = " << i;
         }
     }
@@ -41,10 +41,10 @@ TEST_F(ScalarArrayTest, OnHost_MoveCopySemantics)
     DoubleEnsemble b(std::move(array));
 
     auto noop = [](double x) { return x; };
-    validateData(b.getHostData(), noop);
+    validateData(b.hostData(), noop);
 
     DoubleEnsemble c = std::move(b);
-    validateData(c.getHostData(), noop);
+    validateData(c.hostData(), noop);
 }
 
 TEST_F(ScalarArrayTest, CopyToDeviceAndBack_IsCorrect)
@@ -62,7 +62,7 @@ TEST_F(ScalarArrayTest, CopyToDeviceAndBack_IsCorrect)
     b.asyncMemcpyDeviceToHost();
     FETA2_CUAPI(cudaDeviceSynchronize());
     auto noop = [](double x) { return x; };
-    validateData(b.getHostData(), noop);
+    validateData(b.hostData(), noop);
 }
 
 
@@ -84,13 +84,13 @@ TEST_F(ScalarArrayTest, EditOnDevice_IsCorrect)
     DoubleEnsemble b = std::move(array);
 
     FETA2_KERNEL_PRE();
-    doubleArrayCUDA<<<nBlocks, blockSize>>>(b.deviceRef());
+    doubleArrayCUDA<<<nBlocks_, blockSize_>>>(b.deviceRef());
     FETA2_KERNEL_POST();
 
     b.asyncMemcpyDeviceToHost();
     FETA2_CUAPI(cudaDeviceSynchronize());
     auto mul2 = [](double x) { return 2 * x; };
-    validateData(b.getHostData(), mul2);
+    validateData(b.hostData(), mul2);
 }
 
 __global__ void doubleArrayCUDAShared(DoubleEnsemble::GRef arr)
@@ -115,22 +115,22 @@ TEST_F(ScalarArrayTest, EditOnDeviceShared_IsCorrect)
     DoubleEnsemble b = std::move(array);
 
     FETA2_KERNEL_PRE();
-    idx_t shMem = blockSize * sizeof(double);
-    doubleArrayCUDAShared<<<nBlocks, blockSize, shMem>>>(b.deviceRef());
+    idx_t shMem = blockSize_ * sizeof(double);
+    doubleArrayCUDAShared<<<nBlocks_, blockSize_, shMem>>>(b.deviceRef());
     FETA2_KERNEL_POST();
 
     b.asyncMemcpyDeviceToHost();
     cudaDeviceSynchronize();
     auto mul2 = [](double x) { return 2 * x; };
-    validateData(b.getHostData(), mul2);
+    validateData(b.hostData(), mul2);
 }
 
 TEST_F(ScalarArrayTest, OnInit_AllValuesInitialized)
 {
     double initVal = 3.14;
-    DoubleEnsemble blankArray(testSize, 3.14);
+    DoubleEnsemble blankArray(testSize_, 3.14);
 
-    for (uint i = 0; i < testSize; i++) {
+    for (uint i = 0; i < testSize_; i++) {
         ASSERT_EQ(blankArray[i], initVal);
     }
 }

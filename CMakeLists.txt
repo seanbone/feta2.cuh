@@ -18,6 +18,7 @@ mark_as_advanced(FETA2_NOT_FETA)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(FETA2_COMMON_OPTIONS "-Wall -Wextra -O3 -ftemplate-backtrace-limit=100")
 
 ### DEPENDENCIES
 
@@ -61,6 +62,8 @@ endif()
 # Otherwise this causes a slew of warnings from Eigen's code
 target_compile_options(feta2 INTERFACE "--expt-relaxed-constexpr")
 target_compile_options(feta2 INTERFACE "-Wno-unknown-pragmas")
+# TODO figure out better way to do this
+target_compile_options(feta2 INTERFACE "--diag-suppress=20012")
 
 
 #### DEMO EXECUTABLE
@@ -68,11 +71,7 @@ target_compile_options(feta2 INTERFACE "-Wno-unknown-pragmas")
 if (FETA2_BUILD_DEMO)
   add_executable(feta2_demo feta2_demo.cu)
   target_link_libraries(feta2_demo feta2)
-  target_compile_options(feta2_demo PRIVATE
-    "-Wall -Wextra -O3 -ftemplate-backtrace-limit=100"
-  )
-  # TODO figure out better way to do this
-  target_compile_options(feta2_demo PRIVATE "--diag-suppress=20012")
+  target_compile_options(feta2_demo PRIVATE ${FETA2_COMMON_OPTIONS})
 endif()
 
 

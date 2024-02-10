@@ -16,8 +16,8 @@ $(builddir)/CMakeCache.txt: CMakeLists.txt
 	cmake -B $(builddir)           \
 	  -DFETA2_BUILD_TESTS=ON       \
 	  -DFETA2_BUILD_DEMO=ON        \
-	  -DFETA2_DEBUG_MODE=ON        \
-	  -DFETA2_BUILD_BENCHMARKS=OFF \
+	  -DFETA2_DEBUG_MODE=OFF        \
+	  -DFETA2_BUILD_BENCHMARKS=ON  \
 	  -DFETA2_NOT_FETA=OFF         \
 	  $(cuda_arch_flag)            \
 	  .
@@ -40,6 +40,11 @@ demo: feta2_demo.cu $(builddir)/feta2_demo
 test: $(builddir)/CMakeCache.txt
 	$(mkcmd) feta2_tests
 	./$(builddir)/tests/feta2_tests
+
+.PHONY: bench
+bench: $(builddir)/CMakeCache.txt
+	$(mkcmd) feta2_benchmarks
+	./$(builddir)/tests/benchmarks/feta2_benchmarks
 
 .PHONY: clean
 clean:
