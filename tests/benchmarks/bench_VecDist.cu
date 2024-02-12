@@ -1,40 +1,42 @@
-/** Benchmark of vector dot product operation: out[i] = a[i].dot(b[i]) */
+/** Benchmark of vector euclidean distance: out[i] = (a[i] - b[i]).norm() */
 
 #include "BenchBase.cuh"
 
 namespace feta2_bench {
-namespace bench_vecDot {
+namespace bench_vecDist {
 
 template<typename dimsHelper_>
-class BenchVecDot : public BenchTest {
+class BenchVecDist : public BenchTest {
 public:
     static constexpr dim_t Dims = dimsHelper_::dims;
 
     using Vecs = feta2::VectorEnsemble<Scalar, Dims>;
 
-    BenchVecDot()
+    BenchVecDist()
         : BenchTest()
         , a(nSamples)
         , b(nSamples)
         , out(nSamples)
     {
         std::printf("nDims: %d\n", Dims);
-        std::printf("op: vecDot\n");
+        std::printf("op: vecDist\n");
         this->a.asyncMemcpyHostToDevice();
         this->b.asyncMemcpyHostToDevice();
         this->out.asyncMemcpyHostToDevice();
         cudaDeviceSynchronize();
     }
 
-    struct VecDotKernelRunner : public KernelRunner {
-        VecDotKernelRunner(BenchVecDot<dimsHelper_>& testObj)
+    struct VecDisttKernelRunner : public KernelRunner {
+        VecDisttKernelRunner(BenchVecDist<dimsHelper_>& testObj)
             : test_{ testObj }
         {
         }
 
         virtual idx_t flopsPerSamplePerRep() const override
         {
-            return 2 * Dims - 1;
+            // This is a rough estimate of the relative cost of sqrt
+            constexpr idx_t sqrtCost = 5;
+            return (3 * Dims - 1) + sqrtCost;
         };
 
         virtual void run(int reps) const = 0;
@@ -43,7 +45,7 @@ public:
         Scalar* b() const { return test_.b.deviceData(); }
         Scalar* out() const { return test_.out.deviceData(); }
 
-        BenchVecDot<dimsHelper_>& test_;
+        BenchVecDist<dimsHelper_>& test_;
     };
 
     Vecs a;
@@ -54,7 +56,7 @@ public:
 
 // Run each test for multiple vector dimensions
 using TestTypes = ::testing::Types<VecDims<3>, VecDims<6>, VecDims<9>>;
-TYPED_TEST_SUITE(BenchVecDot, TestTypes);
+TYPED_TEST_SUITE(BenchVecDist, TestTypes);
 
 
 template<typename Scalar, dim_t dims>
@@ -69,14 +71,14 @@ __global__ void vecDot_feta2(int reps,
         return;
 
     for (int i = 0; i < reps; i++)
-        out[si] = a[si].dot(b[si]);
+        out[si] = (a[si] - b[si]).norm();
 }
 
-TYPED_TEST(BenchVecDot, FETA2)
+TYPED_TEST(BenchVecDist, FETA2)
 {
-    using TestT = BenchVecDot<TypeParam>;
-    struct VecDot_FETA2 : public TestT::VecDotKernelRunner {
-        using TestT::VecDotKernelRunner::VecDotKernelRunner;
+    using TestT = BenchVecDist<TypeParam>;
+    struct VecDot_FETA2 : public TestT::VecDisttKernelRunner {
+        using TestT::VecDisttKernelRunner::VecDisttKernelRunner;
         void run(int reps) const override
         {
             vecDot_feta2<Scalar, TestT::Dims>
@@ -101,14 +103,14 @@ __global__ void vecDot_naiveEigen(int reps, Eigen::Vector<Scalar, dims>* a,
         return;
 
     for (int i = 0; i < reps; i++)
-        out[si] = a[si].dot(b[si]);
+        out[si] = (a[si] - b[si]).norm();
 }
 
-TYPED_TEST(BenchVecDot, naiveEigen)
+TYPED_TEST(BenchVecDist, naiveEigen)
 {
-    using TestT = BenchVecDot<TypeParam>;
-    struct VecDot_naiveEigen : public TestT::VecDotKernelRunner {
-        using TestT::VecDotKernelRunner::VecDotKernelRunner;
+    using TestT = BenchVecDist<TypeParam>;
+    struct VecDot_naiveEigen : public TestT::VecDisttKernelRunner {
+        using TestT::VecDisttKernelRunner::VecDisttKernelRunner;
         virtual void run(int reps) const override
         {
             using EigenT = Eigen::Vector<Scalar, TestT::Dims>;
@@ -132,19 +134,20 @@ __global__ void vecDot_manualBad(
         return;
 
     for (int _ = 0; _ < reps; _++) {
-        Scalar dot = 0;
+        Scalar norm = 0;
         for (int i = 0; i < dims; i++) {
-            dot += a[dims * si + i] * b[dims * si + i];
+            const Scalar diff = a[dims * si + i] - b[dims * si + i];
+            norm += diff * diff;
         }
-        out[si] = dot;
+        out[si] = sqrt(norm);
     }
 }
 
-TYPED_TEST(BenchVecDot, manualBadStride)
+TYPED_TEST(BenchVecDist, manualBadStride)
 {
-    using TestT = BenchVecDot<TypeParam>;
-    struct VecDot_badStride : public TestT::VecDotKernelRunner {
-        using TestT::VecDotKernelRunner::VecDotKernelRunner;
+    using TestT = BenchVecDist<TypeParam>;
+    struct VecDot_badStride : public TestT::VecDisttKernelRunner {
+        using TestT::VecDisttKernelRunner::VecDisttKernelRunner;
         void run(int reps) const override
         {
             vecDot_manualBad<Scalar, TestT::Dims>
@@ -167,19 +170,32 @@ __global__ void vecDot_manualGood(
         return;
 
     for (int _ = 0; _ < reps; _++) {
-        Scalar dot = 0;
-        for (int i = 0; i < dims; i++) {
-            dot += a[i * nSamples + si] * b[i * nSamples + si];
+        if constexpr (dims == 3) {
+            int i          = si;
+            const Scalar x = a[i] - b[i];
+            i += nSamples;
+            const Scalar y = a[i] - b[i];
+            i += nSamples;
+            const Scalar z = a[i] - b[i];
+            out[si]        = sqrt(x * x + y * y + z * z);
+            // Oddly enough this seems significantly slower
+            // out[si]  = norm3d(x, y, z);
+        } else {
+            Scalar norm = 0;
+            for (int i = 0; i < dims; i++) {
+                const Scalar diff = a[i * nSamples + si] - b[i * nSamples + si];
+                norm += diff * diff;
+            }
+            out[si] = sqrt(norm);
         }
-        out[si] = dot;
     }
 }
 
-TYPED_TEST(BenchVecDot, manualGoodStride)
+TYPED_TEST(BenchVecDist, manualGoodStride)
 {
-    using TestT = BenchVecDot<TypeParam>;
-    struct VecDot_goodStride : public TestT::VecDotKernelRunner {
-        using TestT::VecDotKernelRunner::VecDotKernelRunner;
+    using TestT = BenchVecDist<TypeParam>;
+    struct VecDot_goodStride : public TestT::VecDisttKernelRunner {
+        using TestT::VecDisttKernelRunner::VecDisttKernelRunner;
         void run(int reps) const override
         {
             vecDot_manualGood<Scalar, TestT::Dims>
@@ -191,5 +207,5 @@ TYPED_TEST(BenchVecDot, manualGoodStride)
     this->runBenchmark(VecDot_goodStride(*this));
 }
 
-} // namespace bench_vecDot
+} // namespace bench_vecDist
 } // namespace feta2_bench

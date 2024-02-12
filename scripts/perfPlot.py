@@ -3,6 +3,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+# Benchmark results with 10M samples, 100k reps, on a Tesla V100
+# Values are measured GFLOP/s
 runs = ("Dims = 3", "Dims = 6", "Dims = 9")
 flops = {
     'Eigen (naive)': [674.165, 492.485, 59.0964],
@@ -27,7 +29,7 @@ for attribute, measurement in flops.items():
     multiplier += 1
 
 # Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_ylabel('Average performance [MFLOP/s]')
+ax.set_ylabel('Average performance [GFLOP/s]')
 ax.set_title('Vector dot product (10M samples, double precision)')
 ax.set_xticks(x + width * (nBars-1.)/2, runs)
 ax.legend(loc='upper left', ncols=4)

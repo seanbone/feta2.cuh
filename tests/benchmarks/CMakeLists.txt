@@ -17,7 +17,7 @@ message(STATUS "* Found " ${BENCH_FILES_LEN} " benchmark files")
 
 add_executable(feta2_benchmarks ${BENCH_FILES})
 target_link_libraries(feta2_benchmarks feta2 GTest::gtest_main)
-target_include_directories(feta2_benchmarks PRIVATE ../include)
+target_include_directories(feta2_benchmarks PRIVATE include)
 target_compile_options(feta2_benchmarks PRIVATE ${FETA2_COMMON_OPTIONS})
 gtest_discover_tests(feta2_benchmarks)
 
