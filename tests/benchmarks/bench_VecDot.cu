@@ -6,20 +6,18 @@ namespace feta2_bench {
 namespace bench_vecDot {
 
 template<typename dimsHelper_>
-class BenchVecDot : public BenchTest {
+class VecDot : public BenchTest {
 public:
     static constexpr dim_t Dims = dimsHelper_::dims;
 
     using Vecs = feta2::VectorEnsemble<Scalar, Dims>;
 
-    BenchVecDot()
+    VecDot()
         : BenchTest()
         , a(nSamples)
         , b(nSamples)
         , out(nSamples)
     {
-        std::printf("nDims: %d\n", Dims);
-        std::printf("op: vecDot\n");
         this->a.asyncMemcpyHostToDevice();
         this->b.asyncMemcpyHostToDevice();
         this->out.asyncMemcpyHostToDevice();
@@ -27,7 +25,7 @@ public:
     }
 
     struct VecDotKernelRunner : public KernelRunner {
-        VecDotKernelRunner(BenchVecDot<dimsHelper_>& testObj)
+        VecDotKernelRunner(VecDot<dimsHelper_>& testObj)
             : test_{ testObj }
         {
         }
@@ -43,7 +41,7 @@ public:
         Scalar* b() const { return test_.b.deviceData(); }
         Scalar* out() const { return test_.out.deviceData(); }
 
-        BenchVecDot<dimsHelper_>& test_;
+        VecDot<dimsHelper_>& test_;
     };
 
     Vecs a;
@@ -54,7 +52,7 @@ public:
 
 // Run each test for multiple vector dimensions
 using TestTypes = ::testing::Types<VecDims<3>, VecDims<6>, VecDims<9>>;
-TYPED_TEST_SUITE(BenchVecDot, TestTypes);
+TYPED_TEST_SUITE(VecDot, TestTypes);
 
 
 template<typename Scalar, dim_t dims>
@@ -72,9 +70,9 @@ __global__ void vecDot_feta2(int reps,
         out[si] = a[si].dot(b[si]);
 }
 
-TYPED_TEST(BenchVecDot, FETA2)
+TYPED_TEST(VecDot, FETA2)
 {
-    using TestT = BenchVecDot<TypeParam>;
+    using TestT = VecDot<TypeParam>;
     struct VecDot_FETA2 : public TestT::VecDotKernelRunner {
         using TestT::VecDotKernelRunner::VecDotKernelRunner;
         void run(int reps) const override
@@ -104,9 +102,9 @@ __global__ void vecDot_naiveEigen(int reps, Eigen::Vector<Scalar, dims>* a,
         out[si] = a[si].dot(b[si]);
 }
 
-TYPED_TEST(BenchVecDot, naiveEigen)
+TYPED_TEST(VecDot, naiveEigen)
 {
-    using TestT = BenchVecDot<TypeParam>;
+    using TestT = VecDot<TypeParam>;
     struct VecDot_naiveEigen : public TestT::VecDotKernelRunner {
         using TestT::VecDotKernelRunner::VecDotKernelRunner;
         virtual void run(int reps) const override
@@ -140,9 +138,9 @@ __global__ void vecDot_manualBad(
     }
 }
 
-TYPED_TEST(BenchVecDot, manualBadStride)
+TYPED_TEST(VecDot, manualBadStride)
 {
-    using TestT = BenchVecDot<TypeParam>;
+    using TestT = VecDot<TypeParam>;
     struct VecDot_badStride : public TestT::VecDotKernelRunner {
         using TestT::VecDotKernelRunner::VecDotKernelRunner;
         void run(int reps) const override
@@ -175,9 +173,9 @@ __global__ void vecDot_manualGood(
     }
 }
 
-TYPED_TEST(BenchVecDot, manualGoodStride)
+TYPED_TEST(VecDot, manualGoodStride)
 {
-    using TestT = BenchVecDot<TypeParam>;
+    using TestT = VecDot<TypeParam>;
     struct VecDot_goodStride : public TestT::VecDotKernelRunner {
         using TestT::VecDotKernelRunner::VecDotKernelRunner;
         void run(int reps) const override

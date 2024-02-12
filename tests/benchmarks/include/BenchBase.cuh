@@ -61,11 +61,11 @@ public:
         cudaEventDestroy(start);
         cudaEventDestroy(stop);
 
-        std::cout << "\tAvg ms/rep: " << timeMilli / nReps << std::endl;
+        std::cout << "* Avg ms/rep: " << timeMilli / nReps << std::endl;
         const float timeSec = timeMilli / 1e3;
         const double totalFlops
             = (double)runner.flopsPerSamplePerRep() * nReps * nSamples;
-        std::cout << "\tGFLOP/s: " << totalFlops / timeSec / 1e9 << std::endl;
+        std::cout << "* GFLOP/s: " << totalFlops / timeSec / 1e9 << std::endl;
     }
 };
 } // namespace feta2_bench
