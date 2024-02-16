@@ -46,6 +46,13 @@ bench: $(builddir)/CMakeCache.txt
 	$(mkcmd) feta2_benchmarks
 	./$(builddir)/tests/benchmarks/feta2_benchmarks
 
+.PHONY: benchplot
+benchplot: $(builddir)/CMakeCache.txt
+	$(mkcmd) feta2_benchmarks
+	./$(builddir)/tests/benchmarks/feta2_benchmarks \
+	 | ./scripts/parseBench.py                      \
+	 | ./scripts/plotBench.py
+
 .PHONY: clean
 clean:
 	rm -rf $(builddir)

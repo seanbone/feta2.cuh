@@ -15,6 +15,21 @@ struct VecDims {
     static constexpr dim_t dims = Dims_;
 };
 
+template<typename S>
+struct Precision {
+    static constexpr char name[] = "unknown";
+};
+
+template<>
+struct Precision<float> {
+    static constexpr char name[] = "single";
+};
+
+template<>
+struct Precision<double> {
+    static constexpr char name[] = "double";
+};
+
 /** @brief Base class for test suites */
 class BenchTest : public ::testing::Test {
 protected:
@@ -30,6 +45,7 @@ protected:
 public:
     BenchTest()
     {
+        std::printf("Precision: %s\n", Precision<Scalar>::name);
         std::printf("nSamples: %.2e\n", (float)nSamples);
         std::printf("nReps: %.2e\n", (float)nReps);
     }

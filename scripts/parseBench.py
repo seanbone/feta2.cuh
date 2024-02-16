@@ -17,7 +17,12 @@ reFlags = re.MULTILINE | re.DOTALL
 
 def parseSuite(suiteContent):
     """ Parse the output of one benchmark suite, returning a dictionary """
-    implsRegex = r'\[\s+RUN\s+\] (?P<tag>(?P<suite>\w+)\/(?P<run>\d+)\.(?P<impl>\w+))(?:.+)nSamples: (?P<nSamples>\S+)(?:.+)nReps: (?P<nReps>\S+)(?:.+)GFLOP/s: (?P<gflops>\d+\.\d+)(?:.+)\[\s+OK\s+\] (?P=tag)'
+    implsRegex = r'\[\s+RUN\s+\] (?P<tag>(?P<suite>\w+)\/(?P<run>\d+)\.(?P<impl>\w+))'\
+        r'(?:.+)Precision: (?P<prec>\w+)(?:.+)'\
+        r'nSamples: (?P<nSamples>\S+)(?:.+)'\
+        r'nReps: (?P<nReps>\S+)(?:.+)'\
+        r'GFLOP/s: (?P<gflops>\d+\.\d+)(?:.+)'\
+        r'\[\s+OK\s+\] (?P=tag)'
 
     implsData = {}
     for implMatch in re.finditer(implsRegex, suiteContent, reFlags):
@@ -28,6 +33,7 @@ def parseSuite(suiteContent):
         implsData[impl]['gflops'] = float(implMatch.group('gflops'))
         implsData[impl]['nReps'] = float(implMatch.group('nReps'))
         implsData[impl]['nSamples'] = float(implMatch.group('nSamples'))
+        implsData[impl]['prec'] = implMatch.group('prec')
 
     return implsData
 
@@ -36,7 +42,11 @@ def parseBenchRun(allInput):
     """ Parses the output of an entire benchmark run,
         returning a dictionary with the important data.
     """
-    suiteRegex = r'(?P<tag>\[(-)+\] (?:\d+) tests from (?P<suite>\w+)\/(?P<run>\d+)), where TypeParam = feta2_bench::VecDims<(?P<nDims>\d+)>(?P<content>.+)(?P=tag)'
+    suiteRegex = r'(?P<tag>\[(-)+\] (?:\d+) tests from '\
+        r'(?P<suite>\w+)\/(?P<run>\d+)), where TypeParam = '\
+        r'feta2_bench::VecDims<(?P<nDims>\d+)>'\
+        r'(?P<content>.+)'\
+        r'(?P=tag)'
 
     benchData = {}
 
