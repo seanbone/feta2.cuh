@@ -1,0 +1,162 @@
+{
+    "VecDist": {
+        "VecDims=3": {
+            "naiveEigen": {
+                "gflops": 1651.82,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            },
+            "manualBadStride": {
+                "gflops": 1652.71,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            },
+            "FETA2": {
+                "gflops": 2032.75,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            },
+            "manualOpt": {
+                "gflops": 2191.22,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            }
+        },
+        "VecDims=6": {
+            "FETA2": {
+                "gflops": 2147.59,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            },
+            "naiveEigen": {
+                "gflops": 968.242,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            },
+            "manualBadStride": {
+                "gflops": 967.702,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            },
+            "manualOpt": {
+                "gflops": 2319.36,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            }
+        },
+        "VecDims=9": {
+            "FETA2": {
+                "gflops": 1771.01,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            },
+            "naiveEigen": {
+                "gflops": 85.738,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            },
+            "manualBadStride": {
+                "gflops": 116.395,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            },
+            "manualOpt": {
+                "gflops": 1848.61,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            }
+        }
+    },
+    "VecDot": {
+        "VecDims=3": {
+            "naiveEigen": {
+                "gflops": 673.22,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            },
+            "manualBadStride": {
+                "gflops": 672.81,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            },
+            "FETA2": {
+                "gflops": 924.34,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            },
+            "manualOpt": {
+                "gflops": 915.606,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            }
+        },
+        "VecDims=6": {
+            "FETA2": {
+                "gflops": 1233.12,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            },
+            "naiveEigen": {
+                "gflops": 492.466,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            },
+            "manualBadStride": {
+                "gflops": 492.456,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            },
+            "manualOpt": {
+                "gflops": 1246.49,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            }
+        },
+        "VecDims=9": {
+            "FETA2": {
+                "gflops": 1252.91,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            },
+            "naiveEigen": {
+                "gflops": 58.9971,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            },
+            "manualBadStride": {
+                "gflops": 74.5448,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            },
+            "manualOpt": {
+                "gflops": 1284.65,
+                "nReps": 100000.0,
+                "nSamples": 10000000.0,
+                "prec": "double"
+            }
+        }
+    }
+}

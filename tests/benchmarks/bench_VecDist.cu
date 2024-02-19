@@ -58,40 +58,6 @@ TYPED_TEST_SUITE(VecDist, TestTypes);
 
 
 template<typename Scalar, dim_t dims>
-__global__ void vecDot_feta2(int reps,
-    typename feta2::VectorEnsemble<Scalar, dims>::GRef a,
-    typename feta2::VectorEnsemble<Scalar, dims>::GRef b,
-    typename feta2::ScalarEnsemble<Scalar>::GRef out)
-{
-    feta2::SampleIndex si(threadIdx.x, blockIdx.x, blockDim.x);
-
-    if (si.global() >= out.size())
-        return;
-
-    for (int i = 0; i < reps; i++)
-        out[si] = (a[si] - b[si]).norm();
-}
-
-TYPED_TEST(VecDist, FETA2)
-{
-    using TestT = VecDist<TypeParam>;
-    struct VecDot_FETA2 : public TestT::VecDisttKernelRunner {
-        using TestT::VecDisttKernelRunner::VecDisttKernelRunner;
-        void run(int reps) const override
-        {
-            vecDot_feta2<Scalar, TestT::Dims>
-                <<<TestT::nBlocks, TestT::blockSize>>>(reps,
-                    { this->a(), TestT::nSamples },
-                    { this->b(), TestT::nSamples },
-                    { this->out(), TestT::nSamples });
-        }
-    };
-
-    this->runBenchmark(VecDot_FETA2(*this));
-}
-
-
-template<typename Scalar, dim_t dims>
 __global__ void vecDot_naiveEigen(int reps, Eigen::Vector<Scalar, dims>* a,
     Eigen::Vector<Scalar, dims>* b, Scalar* out, int nSamples)
 {
@@ -159,6 +125,40 @@ TYPED_TEST(VecDist, manualBadStride)
 
 
 template<typename Scalar, dim_t dims>
+__global__ void vecDot_feta2(int reps,
+    typename feta2::VectorEnsemble<Scalar, dims>::GRef a,
+    typename feta2::VectorEnsemble<Scalar, dims>::GRef b,
+    typename feta2::ScalarEnsemble<Scalar>::GRef out)
+{
+    feta2::SampleIndex si(threadIdx.x, blockIdx.x, blockDim.x);
+
+    if (si.global() >= out.size())
+        return;
+
+    for (int i = 0; i < reps; i++)
+        out[si] = (a[si] - b[si]).norm();
+}
+
+TYPED_TEST(VecDist, FETA2)
+{
+    using TestT = VecDist<TypeParam>;
+    struct VecDot_FETA2 : public TestT::VecDisttKernelRunner {
+        using TestT::VecDisttKernelRunner::VecDisttKernelRunner;
+        void run(int reps) const override
+        {
+            vecDot_feta2<Scalar, TestT::Dims>
+                <<<TestT::nBlocks, TestT::blockSize>>>(reps,
+                    { this->a(), TestT::nSamples },
+                    { this->b(), TestT::nSamples },
+                    { this->out(), TestT::nSamples });
+        }
+    };
+
+    this->runBenchmark(VecDot_FETA2(*this));
+}
+
+
+template<typename Scalar, dim_t dims>
 __global__ void vecDot_manualGood(
     int reps, Scalar* a, Scalar* b, Scalar* out, int nSamples)
 {
@@ -189,7 +189,7 @@ __global__ void vecDot_manualGood(
     }
 }
 
-TYPED_TEST(VecDist, manualGoodStride)
+TYPED_TEST(VecDist, manualOpt)
 {
     using TestT = VecDist<TypeParam>;
     struct VecDot_goodStride : public TestT::VecDisttKernelRunner {
