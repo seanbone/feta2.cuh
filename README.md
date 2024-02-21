@@ -92,6 +92,10 @@ arithmetics to actually perform the operations.
 
 - **Vector dot product** `out[i] = a[i].dot(b[i])` for 3D, 6D and 9D vectors.
 
-![test](images/perf_vecDot.png)
+![Performance of VecDot implementations](images/perf_vecDot.png)
+
+- **Euclidean distance** `out[i] = (a[i] - b[i]).norm()` for 3D, 6D and 9D vectors.
+
+![Performance of VecDist implementations](images/perf_vecDist.png)
 
 
